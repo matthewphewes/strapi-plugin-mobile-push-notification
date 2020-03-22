@@ -2,6 +2,7 @@
 
 const moment = require( 'moment' );
 const { Expo } = require( 'expo-server-sdk' );
+const axios = require('axios');
 
 const _ = require( 'lodash' );
 
@@ -12,6 +13,8 @@ const _ = require( 'lodash' );
 // const Notification = strapi.plugins[ 'mobile-push-notification' ].models.notification;
 
 module.exports = {
+  
+  
   sendNotification: async notification =>
   {
     let notificationTokens = [];
@@ -26,10 +29,13 @@ module.exports = {
 
     if ( !notificationTokens || !notificationTokens.length ) return;
 
-    await strapi.plugins[ 'mobile-push-notification' ].services.notification.expoPush( notification, notificationTokens );
+    //await strapi.plugins[ 'mobile-push-notification' ].services.notification.expoPush( notification, notificationTokens );
+    await strapi.plugins[ 'mobile-push-notification' ].services.notification.azurePush( notification, notificationTokens );
     await strapi.plugins[ 'mobile-push-notification' ].models.notification.update( notification, { pending: false } );
 
   },
+  
+  
   sendPendingNotification: async () =>
   {
     let params = {
@@ -48,6 +54,41 @@ module.exports = {
     }
 
   },
+
+
+  azurePush: async ( notification, notificationTokens ) =>
+  {
+    
+    let message = {
+      notification_content: {
+        name: "First Push From App Center",
+        title: "Push From App Center",
+        body: "Hello! Isn't this an amazing notification message?",
+        custom_data: {key1: val1, key2: val2}
+      },
+      notification_target: {
+        type: "devices_target",
+        devices: []
+      }
+      
+      for (let pushToken of notificationTokens) {
+        message.notification_target.devices.push(pushToken.token);
+      }
+      
+      const url = "https://appcenter.ms/api/v0.1/apps/hewes/Want/push/notifications";
+      
+      const options = {
+        headers: {'X-API-Token': '54599c5e437e3e44e8d4fd9d97c558dd0268e567'}
+      };
+      
+      await axios.post(url, message, options);
+      
+    };
+    
+    
+    
+  }
+
 
   expoPush: async ( notification, notificationTokens ) =>
   {
@@ -96,6 +137,7 @@ module.exports = {
 
 
   },
+
 
   /**
  * Promise to fetch all notifications.
