@@ -30,7 +30,7 @@ module.exports = {
     if ( !notificationTokens || !notificationTokens.length ) return;
 
     //await strapi.plugins[ 'mobile-push-notification' ].services.notification.expoPush( notification, notificationTokens );
-    await strapi.plugins[ 'mobile-push-notification' ].services.notification.azurePush( notification, notificationTokens );
+    await strapi.plugins[ 'mobile-push-notification' ].services.notification.appCenterPush( notification, notificationTokens );
     await strapi.plugins[ 'mobile-push-notification' ].models.notification.update( notification, { pending: false } );
 
   },
@@ -56,7 +56,7 @@ module.exports = {
   },
 
 
-  azurePush: async ( notification, notificationTokens ) =>
+  appCenterPush: async ( notification, notificationTokens ) =>
   {
     
     let message = {
@@ -70,22 +70,19 @@ module.exports = {
         type: "devices_target",
         devices: []
       }
+    };
       
-      for (let pushToken of notificationTokens) {
-        message.notification_target.devices.push(pushToken.token);
-      }
-      
-      const url = "https://appcenter.ms/api/v0.1/apps/hewes/Want/push/notifications";
-      
-      const options = {
-        headers: {'X-API-Token': '54599c5e437e3e44e8d4fd9d97c558dd0268e567'}
-      };
-      
-      await axios.post(url, message, options);
-      
+    for (let pushToken of notificationTokens) {
+      message.notification_target.devices.push(pushToken.token);
+    }
+    
+    const url = "https://appcenter.ms/api/v0.1/apps/hewes/Want/push/notifications";
+    
+    const options = {
+      headers: {'X-API-Token': '54599c5e437e3e44e8d4fd9d97c558dd0268e567'}
     };
     
-    
+    await axios.post(url, message, options);
     
   }
 
